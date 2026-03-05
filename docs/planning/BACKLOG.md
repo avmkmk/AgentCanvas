@@ -29,7 +29,7 @@
 | DB-05 | MongoDB: flow_memory collection with validation schema | critical | M1 | done |
 | DB-06 | MongoDB indexes: execution_id unique, flow_id unique, status | high | M1 | done |
 | DB-07 | SQLAlchemy ORM models for all PostgreSQL tables | critical | M1 | done |
-| DB-08 | Alembic migration setup + initial migration file | high | M1 | in-progress |
+| DB-08 | Alembic migration setup + initial migration file | high | M1 | done |
 
 ---
 
@@ -38,8 +38,8 @@
 | # | Title | Priority | Milestone | Status |
 |---|-------|----------|-----------|--------|
 | BA-01 | FastAPI app skeleton: main.py, CORS, lifespan, health endpoint | critical | M1 | done |
-| BA-02 | Flow CRUD endpoints: POST/GET/PUT/DELETE /flows | critical | M2 | in-progress |
-| BA-03 | Flow list endpoint with pagination | high | M2 | in-progress |
+| BA-02 | Flow CRUD endpoints: POST/GET/PUT/DELETE /flows | critical | M2 | done |
+| BA-03 | Flow list endpoint with pagination | high | M2 | done |
 | BA-04 | Execution endpoints: POST /executions, GET /executions/{id} | critical | M3 | open |
 | BA-05 | Execution step details: GET /executions/{id}/steps | high | M3 | open |
 | BA-06 | Stop execution: POST /executions/{id}/cancel | high | M3 | open |
@@ -51,6 +51,7 @@
 | BA-12 | WebSocket endpoint: WS /ws/executions/{execution_id} | critical | M3 | open |
 | BA-13 | Pydantic schemas for all request/response models | critical | M1 | done |
 | BA-14 | Global error handler middleware | high | M1 | done |
+| BA-15 | Agent CRUD endpoints: POST/GET/PATCH/DELETE /flows/{id}/agents — reconcile AgentCreate/AgentResponse schemas with Agent ORM (type, system_prompt, model_name, no step_order) | critical | M2 | open |
 
 ---
 
@@ -104,16 +105,16 @@
 
 | # | Title | Priority | Milestone | Status |
 |---|-------|----------|-----------|--------|
-| T-01 | Backend unit tests: FlowExecutor sequential execution | high | M6 | in-progress |
-| T-02 | Backend unit tests: HITLManager approve/reject | high | M6 | in-progress |
-| T-03 | Backend unit tests: MemoryService read/write | high | M6 | in-progress |
-| T-04 | Backend unit tests: LLMService timeout + retry | high | M6 | in-progress |
-| T-05 | Backend integration tests: full execution API flow | high | M6 | in-progress |
-| T-06 | Backend integration tests: HITL gate end-to-end | high | M6 | in-progress |
+| T-01 | Backend unit tests: FlowExecutor sequential execution | high | M6 | done |
+| T-02 | Backend unit tests: HITLManager approve/reject | high | M6 | done |
+| T-03 | Backend unit tests: MemoryService read/write | high | M6 | done |
+| T-04 | Backend unit tests: LLMService timeout + retry | high | M6 | done |
+| T-05 | Backend integration tests: full execution API flow | high | M6 | done |
+| T-06 | Backend integration tests: HITL gate end-to-end | high | M6 | done |
 | T-07 | Frontend component tests: Canvas rendering | medium | M6 | open |
 | T-08 | Frontend component tests: HITL review modal | medium | M6 | open |
 | T-09 | Frontend component tests: Execution log panel | medium | M6 | open |
-| T-10 | pytest fixtures: DB setup/teardown, LLM mock | high | M6 | in-progress |
+| T-10 | pytest fixtures: DB setup/teardown, LLM mock | high | M6 | done |
 
 ---
 
