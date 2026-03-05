@@ -15,7 +15,8 @@
     "jsx": "react-jsx",
 
     /* Test globals — vitest/globals provides describe/it/expect; jest-dom for DOM matchers */
-    "types": ["vitest/globals", "@testing-library/jest-dom"],
+    /* vite/client: enables import.meta.env type support */
+    "types": ["vitest/globals", "@testing-library/jest-dom", "vite/client"],
 
     /* Linting — strict mode enforces Coding Standard 3 (explicitness) */
     "strict": true,
