@@ -1,0 +1,6 @@
+[tool.pytest.ini_options]
+# asyncio_mode = "auto" means every async def test_* and every
+# @pytest_asyncio.fixture is automatically treated as async —
+# no per-test @pytest.mark.asyncio decorator needed.
+asyncio_mode = "auto"
+testpaths = ["tests"]

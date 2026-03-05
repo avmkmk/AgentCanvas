@@ -30,3 +30,10 @@ slowapi==0.1.9
 
 # Async utilities
 anyio==4.3.0
+
+# ─── Test (not installed in production image) ─────────────────────────────────
+# When a multi-stage build is introduced (M6), move to requirements-test.txt
+pytest==8.2.0
+pytest-asyncio==0.23.6
+httpx==0.27.0
+aiosqlite==0.20.0
