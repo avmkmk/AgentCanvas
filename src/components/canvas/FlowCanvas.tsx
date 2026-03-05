@@ -2,13 +2,16 @@
  * FlowCanvas — the main React Flow canvas component.
  *
  * FE-03/04/05: node types, drag-to-add, edge connections.
+ * FE-10 (M3): accepts nodeStatusMap prop to apply runtime execution status
+ *   overlays to agent nodes without lifting node state out of this component.
+ *
  * Wraps ReactFlow with project node types and wires drop/connect handlers.
  *
  * Coding Standard 2: React Flow state (nodes/edges) managed via useState;
  *   useCallback for handlers to avoid unnecessary re-renders.
  * Coding Standard 6: one component, one job — canvas rendering + interaction.
  */
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import ReactFlow, {
   Background,
   Controls,
@@ -24,7 +27,7 @@ import type { Connection } from "reactflow";
 import "reactflow/dist/style.css";
 import { useCanvasDrop } from "../../hooks/useCanvasDrop";
 import { useFlowStore } from "../../store/flowStore";
-import type { AgentNodeData } from "../../types/canvas";
+import type { AgentNodeData, NodeStatus } from "../../types/canvas";
 import AgentConfigPanel from "./AgentConfigPanel";
 import AgentNode from "./AgentNode";
 import EndNode from "./EndNode";
@@ -59,16 +62,46 @@ const INITIAL_NODES: Node[] = [
 interface FlowCanvasProps {
   initialNodes?: Node[];
   initialEdges?: Edge[];
+  /**
+   * FE-10: Maps agent UUID → runtime NodeStatus for execution overlay.
+   * When a key is present, the matching agentNode's data.status is updated.
+   * Parent resets this to {} when a new execution starts.
+   */
+  nodeStatusMap?: Record<string, NodeStatus>;
 }
 
 function FlowCanvas({
   initialNodes = INITIAL_NODES,
   initialEdges = [],
+  nodeStatusMap = {},
 }: FlowCanvasProps): JSX.Element {
   const setIsDirty = useFlowStore((s) => s.setIsDirty);
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+
+  // FE-10: apply execution status overlays to agent nodes when nodeStatusMap changes.
+  // prevMapRef prevents unnecessary setNodes calls when the map hasn't changed.
+  const prevMapRef = useRef<Record<string, NodeStatus>>({});
+  useEffect(() => {
+    // Check if any values have changed to avoid spurious updates
+    const hasChanges = Object.keys(nodeStatusMap).some(
+      (agentId) => prevMapRef.current[agentId] !== nodeStatusMap[agentId]
+    );
+    if (!hasChanges) return;
+
+    prevMapRef.current = { ...nodeStatusMap };
+
+    setNodes((nds) =>
+      nds.map((n) => {
+        if (n.type !== "agentNode") return n;
+        const agentNode = n as Node<AgentNodeData>;
+        const newStatus = nodeStatusMap[agentNode.data.agentId];
+        if (newStatus === undefined) return n;
+        return { ...n, data: { ...agentNode.data, status: newStatus } };
+      })
+    );
+  }, [nodeStatusMap, setNodes]);
 
   // Currently selected AgentNode — drives config panel visibility
   const [selectedNode, setSelectedNode] = useState<Node<AgentNodeData> | null>(

@@ -2,13 +2,21 @@
  * CanvasPage — canvas editor for a specific flow (/flows/:id).
  *
  * FE-02/FE-07: loads the flow, renders the canvas, provides a Save button.
+ * FE-09 (M3): Run Flow button in the toolbar.
+ * FE-10 (M3): passes nodeStatusMap to FlowCanvas for execution overlays.
+ * FE-12 (M3): mounts WebSocket connection for execution events; shows log panel.
+ *
  * Coding Standard 6: one component, one job.
  * Coding Standard 5: all async errors captured — never silent.
  */
 import { useParams } from "react-router-dom";
+import { ExecutionLogPanel } from "../components/canvas/ExecutionLogPanel";
 import FlowCanvas from "../components/canvas/FlowCanvas";
+import { RunButton } from "../components/canvas/RunButton";
+import { useWebSocket } from "../hooks/useWebSocket";
 import { useFlowLoad } from "../hooks/useFlowLoad";
 import { useFlowSave } from "../hooks/useFlowSave";
+import { useExecutionStore } from "../store/executionStore";
 import { useFlowStore } from "../store/flowStore";
 
 function CanvasPage(): JSX.Element {
@@ -16,6 +24,17 @@ function CanvasPage(): JSX.Element {
   const { flow, nodes, edges, isLoading, error } = useFlowLoad(id);
   const { isSaving, saveError, save } = useFlowSave();
   const isDirty = useFlowStore((s) => s.isDirty);
+
+  // M3: execution state
+  const activeExecution = useExecutionStore((s) => s.activeExecution);
+  const logEntries = useExecutionStore((s) => s.logEntries);
+  const nodeStatusMap = useExecutionStore((s) => s.nodeStatusMap);
+  const isRunning =
+    activeExecution?.status === "running" ||
+    activeExecution?.status === "pending";
+
+  // M3: mount WebSocket connection when an execution is active (FE-12)
+  useWebSocket(activeExecution?.id ?? null);
 
   function handleSave(): void {
     if (id && flow) {
@@ -87,13 +106,24 @@ function CanvasPage(): JSX.Element {
           >
             {isSaving ? "Saving…" : "Save"}
           </button>
+
+          {/* M3: Run Flow button — FE-09 */}
+          {id !== undefined && <RunButton flowId={id} />}
         </div>
       </div>
 
       {/* ─── Canvas ───── */}
       <div style={{ flex: 1, overflow: "hidden" }}>
-        <FlowCanvas initialNodes={nodes} initialEdges={edges} />
+        {/* FE-10: pass nodeStatusMap for execution overlays */}
+        <FlowCanvas
+          initialNodes={nodes}
+          initialEdges={edges}
+          nodeStatusMap={nodeStatusMap}
+        />
       </div>
+
+      {/* ─── Execution Log Panel — FE-11/FE-12 ───── */}
+      <ExecutionLogPanel entries={logEntries} isRunning={isRunning} />
     </div>
   );
 }

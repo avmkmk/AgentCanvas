@@ -137,24 +137,53 @@ export interface FlowEdge {
 
 // ─── Execution ────────────────────────────────────────────────────────────────
 
+/**
+ * FlowExecution — mirrors backend ExecutionResponse schema (M3).
+ *
+ * Fields updated from M1 stub to match the actual backend shape:
+ *   Added:   total_steps, completed_steps, current_step
+ *   Removed: input_data, output_data, execution_time_ms, created_at, step_count
+ */
 export interface FlowExecution {
   id: string;
-  flow_id: string;
+  flow_id: string | null;
   status: ExecutionStatus;
-  input_data: Record<string, unknown>;
-  output_data: Record<string, unknown> | null;
-  error_message: string | null;
   started_at: string | null;
   completed_at: string | null;
-  execution_time_ms: number | null;
+  total_steps: number;
+  completed_steps: number;
+  current_step: number;
   success_rate: number | null;
-  step_count: number;
-  created_at: string;
+  error_message: string | null;
 }
 
 export interface ExecutionStartRequest {
   flow_id: string;
   input_data: Record<string, unknown>;
+}
+
+// ─── WebSocket event types — M3 ───────────────────────────────────────────────
+
+export type WSEventType =
+  | "step_started"
+  | "step_completed"
+  | "step_failed"
+  | "hitl_required"
+  | "execution_completed"
+  | "execution_failed";
+
+export interface WSEvent {
+  event: WSEventType;
+  execution_id: string;
+  payload: Record<string, unknown>;
+}
+
+export interface StepLogEntry {
+  timestamp: string;
+  event: WSEventType;
+  step_number?: number;
+  agent_name?: string;
+  message: string;
 }
 
 // ─── HITL Review ──────────────────────────────────────────────────────────────
