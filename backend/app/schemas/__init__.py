@@ -7,6 +7,7 @@ Coding Standard 3: explicit imports only — no wildcard imports.
 from app.schemas.flow import (
     AgentCreate,
     AgentResponse,
+    AgentUpdate,
     FlowCreate,
     FlowResponse,
     FlowUpdate,
@@ -23,6 +24,7 @@ from app.schemas.memory import FlowMemoryResponse
 __all__ = [
     "AgentCreate",
     "AgentResponse",
+    "AgentUpdate",
     "FlowCreate",
     "FlowResponse",
     "FlowUpdate",

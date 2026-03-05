@@ -52,3 +52,8 @@ temp/
 *.sql.bak
 backup.sql
 /backup/
+
+# ── Claude Code local artifacts ───────────────────────────────────────────────
+.claude/
+.mcp.json
+*-this-session-is-being-continued-*.txt

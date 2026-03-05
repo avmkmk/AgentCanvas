@@ -18,6 +18,7 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.agents import router as agents_router
 from app.api.flows import router as flows_router
 from app.api.health import router as health_router
 from app.core.config import settings
@@ -64,6 +65,10 @@ def create_app() -> FastAPI:
     # verify_api_key is declared on each route handler, not at router level,
     # so the dependency is explicit and visible in OpenAPI docs.
     app.include_router(flows_router, prefix="/api/v1")
+
+    # Agent CRUD sub-routes — BA-15
+    # Routes: /api/v1/flows/{flow_id}/agents[/{agent_id}]
+    app.include_router(agents_router, prefix="/api/v1")
 
     # Future routers (uncomment as implemented):
     # app.include_router(executions_router, prefix="/api/v1")
