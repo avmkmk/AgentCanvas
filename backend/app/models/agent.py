@@ -4,16 +4,20 @@ Agent ORM model — maps to the `agents` PostgreSQL table.
 Agents belong to a Flow and represent one LLM-powered step.
 role must be one of the valid values (enforced at DB and Python level
 for defence-in-depth per Coding Standard 9).
+
+Type notes:
+- sa.Uuid: cross-dialect UUID (UUID on PG, CHAR(32) on SQLite)
+- sa.JSON: cross-dialect JSON (production migration uses JSONB on PG)
 """
 from __future__ import annotations
 
+import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING, Optional
 from uuid import UUID
 
-from sqlalchemy import DateTime, ForeignKey, String, Text, func, text
-from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.dialects.postgresql import UUID as PG_UUID
+import sqlalchemy as sa
+from sqlalchemy import DateTime, ForeignKey, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -33,12 +37,12 @@ class Agent(Base):
     __tablename__ = "agents"
 
     id: Mapped[UUID] = mapped_column(
-        PG_UUID(as_uuid=True),
+        sa.Uuid(as_uuid=True),
         primary_key=True,
-        server_default=text("uuid_generate_v4()"),
+        default=uuid.uuid4,
     )
     flow_id: Mapped[Optional[UUID]] = mapped_column(
-        PG_UUID(as_uuid=True),
+        sa.Uuid(as_uuid=True),
         ForeignKey("flows.id", ondelete="CASCADE"),
         nullable=True,
     )
@@ -48,7 +52,7 @@ class Agent(Base):
     role: Mapped[str] = mapped_column(String(100), nullable=False)
     model_name: Mapped[str] = mapped_column(String(100), nullable=False)
     # config stores model-specific parameters (temperature, max_tokens, etc.)
-    config: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
+    config: Mapped[Optional[dict]] = mapped_column(sa.JSON, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, server_default=func.now(), nullable=False
     )
