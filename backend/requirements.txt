@@ -1,0 +1,32 @@
+# AgentCanvas Backend — Pinned dependencies
+# Issue: D-01
+# All versions pinned exactly to guarantee reproducible builds (Coding Standard 10)
+
+# Web framework
+fastapi==0.111.0
+uvicorn[standard]==0.29.0
+
+# Database — PostgreSQL async
+sqlalchemy==2.0.30
+asyncpg==0.29.0
+alembic==1.13.1
+
+# Database — MongoDB async
+motor==3.4.0
+
+# Cache / pub-sub
+redis==5.0.4
+
+# Configuration & validation
+pydantic==2.7.1
+pydantic-settings==2.2.1
+python-dotenv==1.0.1
+
+# LLM client
+anthropic==0.25.1
+
+# Rate limiting (applied to LLM-calling endpoints — Coding Standard 9)
+slowapi==0.1.9
+
+# Async utilities
+anyio==4.3.0

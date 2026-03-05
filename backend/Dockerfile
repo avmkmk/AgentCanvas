@@ -1,0 +1,19 @@
+# Backend Dockerfile — Python 3.11
+# Issue: D-01
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install curl for healthcheck probe
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies first to maximise layer cache hits
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application source
+COPY . .
+
+EXPOSE 8080
+
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
