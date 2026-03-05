@@ -9,6 +9,8 @@ import axios, { AxiosError, AxiosInstance, AxiosResponse } from "axios";
 import type {
   Agent,
   AgentAnalytics,
+  AgentCreateRequest,
+  AgentUpdateRequest,
   ExecutionStartRequest,
   FlowExecution,
   FlowCreateRequest,
@@ -90,6 +92,41 @@ export async function deleteFlow(flowId: string): Promise<void> {
 export async function listAgents(flowId: string): Promise<Agent[]> {
   const res = await http.get<Agent[]>(`/flows/${flowId}/agents`);
   return res.data;
+}
+
+export async function createAgent(
+  flowId: string,
+  payload: AgentCreateRequest
+): Promise<Agent> {
+  const res = await http.post<Agent>(`/flows/${flowId}/agents`, payload);
+  return res.data;
+}
+
+export async function getAgent(
+  flowId: string,
+  agentId: string
+): Promise<Agent> {
+  const res = await http.get<Agent>(`/flows/${flowId}/agents/${agentId}`);
+  return res.data;
+}
+
+export async function updateAgent(
+  flowId: string,
+  agentId: string,
+  payload: AgentUpdateRequest
+): Promise<Agent> {
+  const res = await http.patch<Agent>(
+    `/flows/${flowId}/agents/${agentId}`,
+    payload
+  );
+  return res.data;
+}
+
+export async function deleteAgent(
+  flowId: string,
+  agentId: string
+): Promise<void> {
+  await http.delete(`/flows/${flowId}/agents/${agentId}`);
 }
 
 // ─── Execution endpoints ──────────────────────────────────────────────────────

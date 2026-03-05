@@ -15,6 +15,11 @@ interface FlowState {
   selectedFlow: Flow | null;
   agents: Agent[];
 
+  /** Currently open flow in the canvas editor. */
+  currentFlow: Flow | null;
+  /** True when canvas has unsaved changes not yet persisted to the API. */
+  isDirty: boolean;
+
   // ─── Async status ──────────────────────────────────────────────────────────
   isLoading: boolean;
   error: string | null;
@@ -26,12 +31,21 @@ interface FlowState {
   updateFlow: (flowId: string, payload: FlowUpdateRequest) => Promise<void>;
   deleteFlow: (flowId: string) => Promise<void>;
   clearError: () => void;
+
+  /** Set the flow currently open in the canvas (FE-07/FE-08). */
+  setCurrentFlow: (flow: Flow | null) => void;
+  /** Mark the canvas as having unsaved changes. */
+  setIsDirty: (dirty: boolean) => void;
+  /** Reset canvas state — used when navigating away. */
+  clearCanvas: () => void;
 }
 
-export const useFlowStore = create<FlowState>()((set, get) => ({
+export const useFlowStore = create<FlowState>()((set, _get) => ({
   flows: [],
   selectedFlow: null,
   agents: [],
+  currentFlow: null,
+  isDirty: false,
   isLoading: false,
   error: null,
 
@@ -114,4 +128,10 @@ export const useFlowStore = create<FlowState>()((set, get) => ({
 
   // set({ error: null }) is a no-op in Zustand when error is already null — no guard needed
   clearError: () => set({ error: null }),
+
+  setCurrentFlow: (flow: Flow | null) => set({ currentFlow: flow }),
+
+  setIsDirty: (dirty: boolean) => set({ isDirty: dirty }),
+
+  clearCanvas: () => set({ currentFlow: null, isDirty: false, agents: [] }),
 }));

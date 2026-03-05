@@ -31,9 +31,15 @@ export type ReviewStatus = "pending" | "approved" | "rejected";
 // ─── Flow ─────────────────────────────────────────────────────────────────────
 
 export interface FlowConfig {
-  /** React Flow node/edge graph representation */
-  nodes: FlowNode[];
-  edges: FlowEdge[];
+  /**
+   * React Flow graph serialised as JSON.
+   *
+   * Typed as unknown[] rather than FlowNode[]/FlowEdge[] because the canvas
+   * uses React Flow's Node<T>/Edge types which are incompatible with the
+   * domain types here. Hooks cast to Node[]/Edge[] after loading.
+   */
+  nodes: unknown[];
+  edges: unknown[];
 }
 
 export interface Flow {
@@ -62,26 +68,48 @@ export interface FlowUpdateRequest {
 // ─── Agent ────────────────────────────────────────────────────────────────────
 
 export interface AgentConfig {
-  /** System prompt text for this agent */
-  system_prompt: string;
-  /** Anthropic model ID — e.g. "claude-sonnet-4-6" */
-  model?: string;
-  /** Max tokens for LLM responses */
+  /** Model-specific parameters — temperature, max_tokens, hitl gate, etc. */
+  temperature?: number;
   max_tokens?: number;
-  /** HITL gate configuration */
   hitl_gate?: GateType | null;
 }
 
+/**
+ * Agent — reconciled with AgentResponse schema (BA-15).
+ *
+ * Changed vs M1:
+ *   Added:   type, system_prompt, model_name
+ *   Removed: agent_type, step_order, is_active
+ */
 export interface Agent {
   id: string;
-  flow_id: string;
+  flow_id: string | null;
   name: string;
   role: AgentRole;
-  agent_type: string;
-  config: AgentConfig;
-  step_order: number;
-  is_active: boolean;
+  /** Agent implementation type — "conversational" only in MVP */
+  type: string;
+  system_prompt: string;
+  model_name: string;
+  config: AgentConfig | null;
   created_at: string;
+}
+
+export interface AgentCreateRequest {
+  name: string;
+  role: AgentRole;
+  type?: string;
+  system_prompt: string;
+  model_name: string;
+  config?: AgentConfig;
+}
+
+export interface AgentUpdateRequest {
+  name?: string;
+  role?: AgentRole;
+  type?: string;
+  system_prompt?: string;
+  model_name?: string;
+  config?: AgentConfig;
 }
 
 // ─── React Flow canvas types ───────────────────────────────────────────────────
