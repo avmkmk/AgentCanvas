@@ -1,13 +1,17 @@
 """
 Pydantic v2 schemas for FlowExecution and StepExecution endpoints.
 
-input_data is limited to 100 KB to prevent oversized payloads
-(Security — request body size guard at the schema level).
+ExecutionResponse mirrors the FlowExecution ORM model fields exactly so
+that model_validate(orm_instance) works without manual field mapping.
+
+input_data on ExecutionStartRequest is limited to 100 KB to prevent
+oversized payloads (Security — request body size guard at schema level).
 Literal types on status fields enforce valid enum values on read paths.
 """
 from __future__ import annotations
 
 import json
+from datetime import datetime
 from typing import Any, Literal, Optional
 from uuid import UUID
 
@@ -39,16 +43,18 @@ class ExecutionStartRequest(BaseModel):
 
 
 class StepExecutionResponse(BaseModel):
+    """Response schema for a single StepExecution ORM row."""
+
     id: UUID
     execution_id: Optional[UUID]
     agent_id: Optional[UUID]
     step_number: int
     input_data: Optional[dict[str, Any]]
     output_data: Optional[dict[str, Any]]
-    # Literal enforces valid values even if DB is edited directly
-    status: str  # kept as str for flexibility; validated at write time by DB CHECK
-    started_at: Optional[str]
-    completed_at: Optional[str]
+    # Kept as str for flexibility; validated at write time by DB CHECK constraint
+    status: str
+    started_at: Optional[datetime]
+    completed_at: Optional[datetime]
     execution_time_ms: Optional[int]
     error_message: Optional[str]
     retry_count: int
@@ -57,17 +63,22 @@ class StepExecutionResponse(BaseModel):
 
 
 class ExecutionResponse(BaseModel):
+    """Response schema for a FlowExecution ORM row.
+
+    Field names match the FlowExecution model columns exactly so that
+    ExecutionResponse.model_validate(orm_obj) works without aliasing.
+    """
+
     id: UUID
-    flow_id: UUID
-    status: ExecutionStatusLiteral
-    input_data: dict[str, Any]
-    output_data: Optional[dict[str, Any]]
-    error_message: Optional[str]
-    started_at: Optional[str]
-    completed_at: Optional[str]
-    execution_time_ms: Optional[int]
+    # flow_id is nullable in the DB (FK with nullable=True)
+    flow_id: Optional[UUID]
+    status: str
+    started_at: Optional[datetime]
+    completed_at: Optional[datetime]
+    total_steps: int
+    completed_steps: int
+    current_step: int
     success_rate: Optional[float]
-    step_count: int
-    created_at: str
+    error_message: Optional[str]
 
     model_config = {"from_attributes": True}
