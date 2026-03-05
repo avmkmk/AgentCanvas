@@ -12,7 +12,7 @@ from __future__ import annotations
 import hmac
 from typing import AsyncGenerator
 
-from fastapi import Depends, HTTPException, Security, status
+from fastapi import HTTPException, Security, status
 from fastapi.security import APIKeyHeader
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
@@ -20,14 +20,28 @@ from app.core.config import settings
 
 # ─── Database session factory ─────────────────────────────────────────────────
 
-_engine = create_async_engine(
-    settings.database_url,
-    # Connection pool sizing — avoids exhaustion under concurrent requests
-    pool_size=10,
-    max_overflow=20,
-    pool_pre_ping=True,  # Detect stale connections before use
-    echo=settings.debug,  # SQL logging in debug mode only
-)
+# SQLite (used in tests) does not support pool_size or max_overflow — those
+# kwargs are PostgreSQL / connection-pool-specific.  We detect the dialect
+# prefix and only pass the pool settings for non-SQLite databases.
+# (Coding Standard 4 — explicit configuration; Coding Standard 10 — comment WHY)
+_is_sqlite = settings.database_url.startswith("sqlite")
+
+if _is_sqlite:
+    # StaticPool / NullPool is the correct choice for in-memory SQLite
+    _engine = create_async_engine(
+        settings.database_url,
+        pool_pre_ping=True,
+        echo=settings.debug,
+    )
+else:
+    _engine = create_async_engine(
+        settings.database_url,
+        # Connection pool sizing — avoids exhaustion under concurrent requests
+        pool_size=10,
+        max_overflow=20,
+        pool_pre_ping=True,  # Detect stale connections before use
+        echo=settings.debug,  # SQL logging in debug mode only
+    )
 
 _AsyncSessionLocal = async_sessionmaker(
     bind=_engine,

@@ -9,12 +9,13 @@ counting if a step is retried and an event is accidentally inserted twice.
 """
 from __future__ import annotations
 
+import uuid
 from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String, func, text
-from sqlalchemy.dialects.postgresql import UUID as PG_UUID
+import sqlalchemy as sa
+from sqlalchemy import DateTime, ForeignKey, Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
@@ -24,17 +25,17 @@ class AgentExecutionEvent(Base):
     __tablename__ = "agent_execution_events"
 
     id: Mapped[UUID] = mapped_column(
-        PG_UUID(as_uuid=True),
+        sa.Uuid(as_uuid=True),
         primary_key=True,
-        server_default=text("uuid_generate_v4()"),
+        default=uuid.uuid4,
     )
     agent_id: Mapped[UUID] = mapped_column(
-        PG_UUID(as_uuid=True),
+        sa.Uuid(as_uuid=True),
         ForeignKey("agents.id", ondelete="CASCADE"),
         nullable=False,
     )
     execution_id: Mapped[UUID] = mapped_column(
-        PG_UUID(as_uuid=True),
+        sa.Uuid(as_uuid=True),
         ForeignKey("flow_executions.id", ondelete="CASCADE"),
         nullable=False,
     )

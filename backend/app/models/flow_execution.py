@@ -8,13 +8,13 @@ constraint exactly (Coding Standard 4 — consistency).
 from __future__ import annotations
 
 import enum
+import uuid
 from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
-from sqlalchemy import DateTime, ForeignKey, Integer, Numeric, String, Text, func, text
-from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.dialects.postgresql import UUID as PG_UUID
+import sqlalchemy as sa
+from sqlalchemy import DateTime, ForeignKey, Integer, Numeric, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
@@ -34,12 +34,12 @@ class FlowExecution(Base):
     __tablename__ = "flow_executions"
 
     id: Mapped[UUID] = mapped_column(
-        PG_UUID(as_uuid=True),
+        sa.Uuid(as_uuid=True),
         primary_key=True,
-        server_default=text("uuid_generate_v4()"),
+        default=uuid.uuid4,
     )
     flow_id: Mapped[Optional[UUID]] = mapped_column(
-        PG_UUID(as_uuid=True),
+        sa.Uuid(as_uuid=True),
         ForeignKey("flows.id"),
         nullable=True,
     )
@@ -59,4 +59,4 @@ class FlowExecution(Base):
         Numeric(5, 2), nullable=True
     )
     error_message: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    execution_metadata: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
+    execution_metadata: Mapped[Optional[dict]] = mapped_column(sa.JSON, nullable=True)

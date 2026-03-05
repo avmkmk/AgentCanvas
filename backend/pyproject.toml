@@ -4,3 +4,9 @@
 # no per-test @pytest.mark.asyncio decorator needed.
 asyncio_mode = "auto"
 testpaths = ["tests"]
+
+[tool.mypy]
+# Pydantic v2 plugin — resolves false-positive call-arg errors on pydantic-settings
+# `Settings()` singletons where env vars supply the required arguments at runtime.
+plugins = ["pydantic.mypy"]
+ignore_missing_imports = true

@@ -15,7 +15,6 @@ import redis.asyncio as aioredis
 from fastapi import APIRouter, status
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncSession
 
 # Reuse the shared engine from dependencies — avoids a second connection pool
 # and eliminates the module-level resource leak from an unmanaged second engine.
