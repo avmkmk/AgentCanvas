@@ -7,13 +7,13 @@ output_to_review stores whatever the agent produced for the human reviewer.
 from __future__ import annotations
 
 import enum
+import uuid
 from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
-from sqlalchemy import DateTime, ForeignKey, String, Text, func, text
-from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.dialects.postgresql import UUID as PG_UUID
+import sqlalchemy as sa
+from sqlalchemy import DateTime, ForeignKey, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
@@ -37,22 +37,22 @@ class HITLReview(Base):
     __tablename__ = "hitl_reviews"
 
     id: Mapped[UUID] = mapped_column(
-        PG_UUID(as_uuid=True),
+        sa.Uuid(as_uuid=True),
         primary_key=True,
-        server_default=text("uuid_generate_v4()"),
+        default=uuid.uuid4,
     )
     execution_id: Mapped[Optional[UUID]] = mapped_column(
-        PG_UUID(as_uuid=True),
+        sa.Uuid(as_uuid=True),
         ForeignKey("flow_executions.id"),
         nullable=True,
     )
     step_id: Mapped[Optional[UUID]] = mapped_column(
-        PG_UUID(as_uuid=True),
+        sa.Uuid(as_uuid=True),
         ForeignKey("step_executions.id"),
         nullable=True,
     )
     agent_id: Mapped[Optional[UUID]] = mapped_column(
-        PG_UUID(as_uuid=True),
+        sa.Uuid(as_uuid=True),
         ForeignKey("agents.id"),
         nullable=True,
     )
@@ -60,7 +60,7 @@ class HITLReview(Base):
     status: Mapped[str] = mapped_column(
         String(50), nullable=False, default=ReviewStatus.PENDING.value
     )
-    output_to_review: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    output_to_review: Mapped[dict] = mapped_column(sa.JSON, nullable=False)
     reviewer_comments: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, server_default=func.now(), nullable=False

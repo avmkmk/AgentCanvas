@@ -18,6 +18,7 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.flows import router as flows_router
 from app.api.health import router as health_router
 from app.core.config import settings
 from app.middleware.error_handler import register_error_handlers
@@ -59,12 +60,15 @@ def create_app() -> FastAPI:
     # Health check — no auth required
     app.include_router(health_router)
 
-    # Versioned API routers will be added here as they are implemented
-    # Example (M1 stub — routers created in BA-01/BA-02/etc.):
-    # app.include_router(flows_router, prefix="/api/v1", dependencies=[Depends(verify_api_key)])
-    # app.include_router(executions_router, prefix="/api/v1", dependencies=[Depends(verify_api_key)])
-    # app.include_router(hitl_router, prefix="/api/v1", dependencies=[Depends(verify_api_key)])
-    # app.include_router(analytics_router, prefix="/api/v1", dependencies=[Depends(verify_api_key)])
+    # Flow CRUD — BA-02 / BA-03
+    # verify_api_key is declared on each route handler, not at router level,
+    # so the dependency is explicit and visible in OpenAPI docs.
+    app.include_router(flows_router, prefix="/api/v1")
+
+    # Future routers (uncomment as implemented):
+    # app.include_router(executions_router, prefix="/api/v1")
+    # app.include_router(hitl_router, prefix="/api/v1")
+    # app.include_router(analytics_router, prefix="/api/v1")
 
     logger.info(
         "AgentCanvas API ready — log_level=%s debug=%s",

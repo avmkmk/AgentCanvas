@@ -7,13 +7,13 @@ for auditability and replay capability (Coding Standard 10).
 """
 from __future__ import annotations
 
+import uuid
 from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, text
-from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.dialects.postgresql import UUID as PG_UUID
+import sqlalchemy as sa
+from sqlalchemy import DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
@@ -23,23 +23,23 @@ class StepExecution(Base):
     __tablename__ = "step_executions"
 
     id: Mapped[UUID] = mapped_column(
-        PG_UUID(as_uuid=True),
+        sa.Uuid(as_uuid=True),
         primary_key=True,
-        server_default=text("uuid_generate_v4()"),
+        default=uuid.uuid4,
     )
     execution_id: Mapped[Optional[UUID]] = mapped_column(
-        PG_UUID(as_uuid=True),
+        sa.Uuid(as_uuid=True),
         ForeignKey("flow_executions.id", ondelete="CASCADE"),
         nullable=True,
     )
     agent_id: Mapped[Optional[UUID]] = mapped_column(
-        PG_UUID(as_uuid=True),
+        sa.Uuid(as_uuid=True),
         ForeignKey("agents.id"),
         nullable=True,
     )
     step_number: Mapped[int] = mapped_column(Integer, nullable=False)
-    input_data: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
-    output_data: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
+    input_data: Mapped[Optional[dict]] = mapped_column(sa.JSON, nullable=True)
+    output_data: Mapped[Optional[dict]] = mapped_column(sa.JSON, nullable=True)
     status: Mapped[str] = mapped_column(
         String(50), nullable=False, default="pending"
     )

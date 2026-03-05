@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import re
+from datetime import datetime
 from typing import Any, Literal, Optional
 from uuid import UUID
 
@@ -91,10 +92,20 @@ class FlowResponse(BaseModel):
     description: Optional[str]
     flow_config: dict[str, Any]
     is_active: bool
-    created_at: str
-    updated_at: str
+    created_at: datetime
+    updated_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class FlowListResponse(BaseModel):
+    """Paginated list of flows."""
+
+    items: list[FlowResponse]
+    total: int
+    page: int
+    page_size: int
+    pages: int
 
 
 # ─── Agent schemas ────────────────────────────────────────────────────────────
@@ -105,6 +116,9 @@ AgentRoleLiteral = Literal[
 ]
 
 
+# TODO(BA-agents): step_order and agent_type fields don't match Agent ORM columns.
+# Agent ORM has: type, system_prompt, model_name, role, config
+# This schema will be reconciled when agent CRUD endpoints are implemented.
 class AgentCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
     # Use Literal for OpenAPI enum + static analysis; runtime validation is via Literal
@@ -130,6 +144,7 @@ class AgentResponse(BaseModel):
     config: dict[str, Any]
     step_order: int
     is_active: bool
-    created_at: str
+    # datetime — not str — so Pydantic serialises the ORM datetime correctly
+    created_at: datetime
 
     model_config = {"from_attributes": True}
