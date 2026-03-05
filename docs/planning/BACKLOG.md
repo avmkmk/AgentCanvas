@@ -51,7 +51,7 @@
 | BA-12 | WebSocket endpoint: WS /ws/executions/{execution_id} | critical | M3 | open |
 | BA-13 | Pydantic schemas for all request/response models | critical | M1 | done |
 | BA-14 | Global error handler middleware | high | M1 | done |
-| BA-15 | Agent CRUD endpoints: POST/GET/PATCH/DELETE /flows/{id}/agents — reconcile AgentCreate/AgentResponse schemas with Agent ORM (type, system_prompt, model_name, no step_order) | critical | M2 | open |
+| BA-15 | Agent CRUD endpoints: POST/GET/PATCH/DELETE /flows/{id}/agents — reconcile AgentCreate/AgentResponse schemas with Agent ORM (type, system_prompt, model_name, no step_order) | critical | M2 | review |
 
 ---
 
@@ -70,7 +70,7 @@
 | BC-09 | Execution background task: run via FastAPI BackgroundTasks | high | M3 | open |
 | BC-10 | Agent template system: load pre-built configs | medium | M5 | open |
 | BC-11 | AnalyticsService: query and format agent stats | high | M5 | open |
-| BC-12 | Prompt sanitizer: strip injection patterns before LLM call | high | M3 | open |
+| BC-12 | Prompt sanitizer: strip injection patterns before LLM call | high | M3 | review |
 
 ---
 
@@ -79,13 +79,13 @@
 | # | Title | Priority | Milestone | Status |
 |---|-------|----------|-----------|--------|
 | FE-01 | Vite + React + TypeScript + React Flow skeleton | critical | M1 | done |
-| FE-02 | React Router setup with routes: /, /flows/:id, /analytics | high | M1 | open |
-| FE-03 | React Flow canvas with Start, Agent, End node types | critical | M2 | open |
-| FE-04 | Drag-to-add agent nodes from sidebar palette | critical | M2 | open |
-| FE-05 | Edge connections between nodes (directional) | critical | M2 | open |
-| FE-06 | Agent configuration panel (right sidebar) | critical | M2 | open |
-| FE-07 | Save flow button — POST/PUT to API | critical | M2 | open |
-| FE-08 | Load/list flows — GET from API, flow library page | high | M2 | open |
+| FE-02 | React Router setup with routes: /, /flows/:id, /analytics | high | M1 | review |
+| FE-03 | React Flow canvas with Start, Agent, End node types | critical | M2 | review |
+| FE-04 | Drag-to-add agent nodes from sidebar palette | critical | M2 | review |
+| FE-05 | Edge connections between nodes (directional) | critical | M2 | review |
+| FE-06 | Agent configuration panel (right sidebar) | critical | M2 | review |
+| FE-07 | Save flow button — POST/PUT to API | critical | M2 | review |
+| FE-08 | Load/list flows — GET from API, flow library page | high | M2 | review |
 | FE-09 | Run flow button — POST /executions | critical | M3 | open |
 | FE-10 | Execution progress overlay on canvas nodes | high | M3 | open |
 | FE-11 | WebSocket client with reconnect logic | critical | M3 | open |
@@ -124,6 +124,6 @@
 |---|-------|----------|-----------|--------|
 | S-01 | API key auth middleware for all protected endpoints | high | M1 | done |
 | S-02 | Input validation: all Pydantic schemas with field constraints | critical | M1 | done |
-| S-03 | LLM prompt sanitization (prompt injection prevention) | high | M3 | open |
+| S-03 | LLM prompt sanitization (prompt injection prevention) | high | M3 | review |
 | S-04 | CORS configuration: allowed origins from env | high | M1 | done |
 | S-05 | Rate limiting on LLM-calling endpoints | medium | M3 | open |
