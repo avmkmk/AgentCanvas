@@ -19,7 +19,7 @@ from app.schemas.execution import (
 )
 from app.schemas.hitl import HITLDecisionRequest, HITLReviewResponse
 from app.schemas.analytics import AgentAnalyticsResponse
-from app.schemas.memory import FlowMemoryResponse
+from app.schemas.memory import FlowMemoryResponse, FlowMemoryUpdateRequest
 
 __all__ = [
     "AgentCreate",
@@ -35,4 +35,5 @@ __all__ = [
     "HITLReviewResponse",
     "AgentAnalyticsResponse",
     "FlowMemoryResponse",
+    "FlowMemoryUpdateRequest",
 ]

@@ -66,4 +66,6 @@ class Settings(BaseSettings):
 
 # Module-level singleton — imported by all modules that need config.
 # Pydantic raises ValidationError at import time if any required var is absent.
-settings = Settings()
+# mypy false positive: pydantic-settings reads required fields from env vars,
+# not from constructor arguments, so no call-arg are missing at runtime.
+settings = Settings()  # type: ignore
