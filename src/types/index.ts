@@ -169,6 +169,8 @@ export type WSEventType =
   | "step_completed"
   | "step_failed"
   | "hitl_required"
+  | "hitl_review_pending"
+  | "hitl_review_decided"
   | "execution_completed"
   | "execution_failed";
 

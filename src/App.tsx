@@ -12,10 +12,13 @@ import { BrowserRouter, Link, Route, Routes } from "react-router-dom";
 import AnalyticsPage from "./pages/AnalyticsPage";
 import CanvasPage from "./pages/CanvasPage";
 import FlowLibraryPage from "./pages/FlowLibraryPage";
+import HITLQueuePage from "./pages/HITLQueuePage";
 import { useHITLStore } from "./store/hitlStore";
 
 function App(): JSX.Element {
-  const { pendingReviews, startPolling, stopPolling } = useHITLStore();
+  const pendingReviews = useHITLStore((s) => s.pendingReviews);
+  const startPolling = useHITLStore((s) => s.startPolling);
+  const stopPolling = useHITLStore((s) => s.stopPolling);
 
   // Start HITL polling on mount — stop on unmount (Coding Standard 2: no resource leaks)
   useEffect(() => {
@@ -58,6 +61,9 @@ function App(): JSX.Element {
             <Link to="/analytics" style={navLinkStyle}>
               Analytics
             </Link>
+            <Link to="/hitl" style={navLinkStyle}>
+              HITL Queue
+            </Link>
             <span style={{ fontSize: "0.85rem", opacity: 0.7 }}>
               HITL:{" "}
               <strong
@@ -78,6 +84,7 @@ function App(): JSX.Element {
             <Route path="/" element={<FlowLibraryPage />} />
             <Route path="/flows/:id" element={<CanvasPage />} />
             <Route path="/analytics" element={<AnalyticsPage />} />
+            <Route path="/hitl" element={<HITLQueuePage />} />
           </Routes>
         </main>
       </div>
