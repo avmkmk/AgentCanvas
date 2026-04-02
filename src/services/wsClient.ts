@@ -2,7 +2,7 @@
  * ExecutionWSClient — native browser WebSocket wrapper for execution events.
  *
  * No library required — uses the browser's built-in WebSocket API.
- * Reconnects up to MAX_RECONNECT_ATTEMPTS times with exponential backoff.
+ * Reconnects up to MAX_RECONNECT_ATTEMPTS times with linear backoff.
  *
  * Coding Standard 2: reconnect timer is always cleared on deliberate disconnect.
  * Coding Standard 8: external WS events are validated before being forwarded.
@@ -12,6 +12,14 @@ import type { WSEvent } from "../types";
 const WS_BASE =
   (import.meta.env.VITE_WS_BASE_URL as string | undefined) ??
   "ws://localhost:8000";
+
+// API key for WS auth — same env var as apiClient (see #29 S-04 for BFF plan).
+// Cast to `string | undefined` first so the nullish coalescing fallback fires
+// when the env var is absent (bare `as string` silently produces "undefined").
+// An empty string triggers a 4001 close immediately — the guard in onclose
+// handles that path without retrying.
+const WS_API_KEY =
+  (import.meta.env.VITE_API_KEY as string | undefined) ?? "";
 
 const MAX_RECONNECT_ATTEMPTS = 3;
 const RECONNECT_BASE_DELAY_MS = 2_000;
@@ -41,7 +49,7 @@ export class ExecutionWSClient {
     if (!this.executionId) return;
 
     this.ws = new WebSocket(
-      `${WS_BASE}/ws/executions/${this.executionId}`
+      `${WS_BASE}/ws/executions/${this.executionId}?token=${encodeURIComponent(WS_API_KEY)}`
     );
 
     this.ws.onmessage = (event: MessageEvent) => {
@@ -61,7 +69,16 @@ export class ExecutionWSClient {
       }
     };
 
-    this.ws.onclose = () => {
+    this.ws.onclose = (event: CloseEvent) => {
+      if (event.code === 4001) {
+        // Auth failure — cancel pending reconnect and signal close without retrying
+        if (this.reconnectTimer !== null) {
+          clearTimeout(this.reconnectTimer);
+          this.reconnectTimer = null;
+        }
+        this.onCloseCallback?.();
+        return;
+      }
       if (this.reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
         this.reconnectAttempts++;
         const delay = RECONNECT_BASE_DELAY_MS * this.reconnectAttempts;
