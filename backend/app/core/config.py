@@ -6,6 +6,7 @@ The application raises a startup error if any required variable is missing
 (fail-fast — no silent misconfiguration in production).
 Coding Standard 10: no hardcoded secrets — all credentials come from .env.
 """
+
 from __future__ import annotations
 
 from pydantic import field_validator
@@ -30,10 +31,21 @@ class Settings(BaseSettings):
     # Comma-separated list of allowed CORS origins
     allowed_origins: str = "http://localhost:3000"
 
-    # ─── LLM ───────────────────────────────────────────────────────────────────
-    anthropic_api_key: str
+    # ─── LLM — EPAM AI Dial (Azure OpenAI-compatible proxy) ───────────────────
+    # Single API key routes to all models via the Dial proxy — no per-model keys.
+    dial_api_key: str
+    # Base endpoint for the Dial proxy, e.g. https://ai-proxy.lab.epam.com
+    dial_endpoint: str
+    # Azure OpenAI API version — determines which features are available
+    dial_api_version: str = "2024-02-01"
+    # Default model deployment name used when an agent has no model_name set
+    llm_model: str = "gpt-4o"
     max_llm_retries: int = 3
     llm_timeout_seconds: int = 60
+
+    # ─── HITL ──────────────────────────────────────────────────────────────────
+    # Maximum seconds to wait for a reviewer decision before auto-rejecting.
+    hitl_timeout_seconds: int = 3600
 
     # ─── Runtime ───────────────────────────────────────────────────────────────
     log_level: str = "INFO"

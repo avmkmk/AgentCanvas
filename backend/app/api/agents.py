@@ -9,7 +9,7 @@ Security:
 - Input validation delegated to AgentCreate / AgentUpdate schemas
 - system_prompt sanitized in AgentService, not here
 """
-from __future__ import annotations
+
 
 import uuid
 
@@ -112,6 +112,7 @@ async def update_agent(
 @router.delete(
     "/{flow_id}/agents/{agent_id}",
     status_code=status.HTTP_204_NO_CONTENT,
+    response_model=None,
     summary="Delete an agent",
 )
 async def delete_agent(
@@ -121,9 +122,7 @@ async def delete_agent(
     _auth: None = Depends(verify_api_key),
 ) -> None:
     """Hard-delete an agent. Agent has no is_active — deletion is permanent."""
-    deleted = await _service.delete_agent(
-        db=db, flow_id=flow_id, agent_id=agent_id
-    )
+    deleted = await _service.delete_agent(db=db, flow_id=flow_id, agent_id=agent_id)
     if not deleted:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

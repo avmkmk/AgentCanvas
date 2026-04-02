@@ -8,10 +8,21 @@ context as the application.  DATABASE_URL is read from app.core.config.settings
 Offline mode is provided for generating migration SQL without a live DB.
 Online mode runs the migration against the real PostgreSQL instance.
 """
+
 from __future__ import annotations
 
 import asyncio
+import os
+import sys
 from logging.config import fileConfig
+
+# Ensure the backend app package is importable when alembic is invoked
+# directly (e.g. `alembic upgrade head` from inside the container).
+# The Docker working directory is /app which contains the `app/` package,
+# so inserting it ensures `from app.core.config import settings` resolves.
+_repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _repo_root not in sys.path:
+    sys.path.insert(0, _repo_root)
 
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection

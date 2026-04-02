@@ -15,6 +15,7 @@ All coding sessions are logged here. Each entry links to the full session log.
 | [2026-03-05-004](./2026-03-05-004.md) | 2026-03-05 | ~3 hr | Mixed | M2: Alembic setup, Flow CRUD (5 endpoints), 157-test suite, E2E shell script, PR #33 | DB-08, BA-02, BA-03, T-01..T-06, T-10 | ~$16.00 |
 | [2026-03-05-006](./2026-03-05-006.md) | 2026-03-05 | ~3 hr | Mixed | Sync main (PRs #31–#34 merged), Agent CRUD (BA-15), React canvas FE-02..FE-08, PRs #35/#36 opened | BA-15, FE-02..FE-08 | ~$18.00 |
 | [2026-03-05-007](./2026-03-05-007.md) | 2026-03-05 | ~3 hr | Coding | M3 full: FlowExecutor, LLMService, MemoryService, WSManager, execution/memory/WS API, RunButton, ExecutionLogPanel, node overlays, PRs #37/#38 | BC-01..05/08, BA-04..06/09/10/12, S-05, FE-09..12 | ~$25.00 |
+| [2026-03-19-008](./2026-03-19-008.md) | 2026-03-19 | ~1 hr 30 min | Planning + Coding | M4 backend Steps 1–6: HITLManager, HITL API, Redis pub/sub WS, WS token auth, executor gate wiring, settings update | BC-06, BC-07, BC-13, BA-07, BA-08, S-06 | ~$9.00 |
 
 ---
 
@@ -22,12 +23,12 @@ All coding sessions are logged here. Each entry links to the full session log.
 
 | Metric | Total |
 |--------|-------|
-| Total Sessions | 7 |
-| Total Duration | ~19 hr 6 min |
-| Total Cost (est.) | ~$87.05 |
-| Total Issues Closed | 47 |
+| Total Sessions | 8 |
+| Total Duration | ~20 hr 36 min |
+| Total Cost (est.) | ~$96.05 |
+| Total Issues Closed | 53 |
 | Total Commits | 8 |
-| Total Files Created | 165+ |
+| Total Files Created | 167+ |
 
 ---
 

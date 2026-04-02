@@ -11,6 +11,7 @@ Startup sequence:
 Coding Standard 4: one way to start — uvicorn app.main:app
 Coding Standard 8: no business logic here; delegate to routers and services.
 """
+
 from __future__ import annotations
 
 import logging
@@ -25,7 +26,9 @@ from app.api.agents import router as agents_router
 from app.api.executions import router as executions_router
 from app.api.flows import router as flows_router
 from app.api.health import router as health_router
+from app.api.hitl import router as hitl_router
 from app.api.memory import router as memory_router
+from app.api.models import router as models_router
 from app.api.websocket import router as websocket_router
 from app.core.config import settings
 from app.middleware.error_handler import register_error_handlers
@@ -85,6 +88,13 @@ def create_app() -> FastAPI:
 
     # Memory endpoints — BA-09 / BA-10
     app.include_router(memory_router, prefix="/api/v1")
+
+    # HITL review endpoints — BA-07 / BA-08
+    app.include_router(hitl_router, prefix="/api/v1")
+
+    # LLM model discovery — returns available models from the Dial proxy
+    # No auth required — frontend uses this to populate the model picker
+    app.include_router(models_router)
 
     # WebSocket streaming — BA-12
     # No /api/v1 prefix — WS uses /ws/executions/{execution_id}

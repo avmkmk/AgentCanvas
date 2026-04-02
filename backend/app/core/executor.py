@@ -5,8 +5,15 @@ Execution lifecycle:
 1. start()  — creates FlowExecution record, enqueues background task
 2. _run()   — background task entry point; wraps _execute_agents
 3. _execute_agents() — loops over agent nodes, calls AgentRunner per step
-4. _fail_execution() — marks execution FAILED on unhandled exception
-5. cancel() — transitions a running/paused execution to CANCELLED
+4. _execute_single_step() — per-step: HITL gates, LLM call, state updates
+5. _fail_execution() — marks execution FAILED on unhandled exception
+6. cancel() — transitions a running/paused execution to CANCELLED
+
+HITL gate wiring (BC-07, M4):
+- Reads agent.config["hitl_gate"] ("before" | "after" | "on_demand")
+- "before": pause → wait → resume (or fail on reject) before LLM call
+- "after":  pause → wait → resume (or fail on reject) after LLM call
+- "on_demand": no automatic pause; gate fires only via manual API POST
 
 Coding Standard 1: no recursion — linear loop over agent nodes.
 Coding Standard 2: background task uses its own DB session via
@@ -30,8 +37,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 # context and cannot use FastAPI's dependency injection (Coding Standard 2).
 from app.api.dependencies import _AsyncSessionLocal  # noqa: PLC2701
 from app.core.agent_runner import agent_runner
+from app.core.config import settings
+from app.core.hitl_manager import HITLManager
 from app.core.ws_manager import ws_manager
 from app.models.flow_execution import ExecutionStatus, FlowExecution
+from app.models.hitl_review import GateType, ReviewStatus
 from app.models.step_execution import StepExecution
 from app.services.flow_service import FlowService
 from app.services.memory_service import memory_service
@@ -39,6 +49,28 @@ from app.services.memory_service import memory_service
 _log = logging.getLogger(__name__)
 
 _flow_service = FlowService()
+
+
+async def _set_paused(db: AsyncSession, execution_id: uuid.UUID) -> None:
+    """Set FlowExecution status to paused_hitl and commit."""
+    result = await db.execute(
+        select(FlowExecution).where(FlowExecution.id == execution_id)
+    )
+    execution = result.scalar_one_or_none()
+    if execution is not None:
+        execution.status = ExecutionStatus.PAUSED_HITL.value
+        await db.commit()
+
+
+async def _set_running(db: AsyncSession, execution_id: uuid.UUID) -> None:
+    """Restore FlowExecution status to running and commit."""
+    result = await db.execute(
+        select(FlowExecution).where(FlowExecution.id == execution_id)
+    )
+    execution = result.scalar_one_or_none()
+    if execution is not None:
+        execution.status = ExecutionStatus.RUNNING.value
+        await db.commit()
 
 
 class FlowExecutor:
@@ -215,10 +247,10 @@ class FlowExecutor:
         agent_id_str: str,
         step_number: int,
     ) -> None:
-        """Run one agent step: update state, call LLM, persist results.
+        """Run one agent step: HITL gates, LLM call, state updates.
 
-        This method exists purely to keep _execute_agents within 50 lines
-        (Coding Standard 6 — one function, one job; max 50 lines).
+        Delegates gate logic to _run_before_gate and _run_after_gate to keep
+        this method within the 50-line limit (Coding Standard 6).
         """
         # Mark current step on execution record
         exec_result = await db.execute(
@@ -247,6 +279,14 @@ class FlowExecutor:
         await db.commit()
         await db.refresh(step_exec)
 
+        # Determine HITL gate type from agent config (None if not configured)
+        gate: str | None = agent.config.get("hitl_gate") if agent.config else None
+
+        # BEFORE gate: pause execution until reviewer approves or rejects
+        gate_aborted = await self._run_before_gate(db, execution_id, step_exec.id, agent, gate)
+        if gate_aborted:
+            return
+
         shared_memory: dict[str, Any] = await memory_service.get_shared_memory(flow_id)
         started_at = datetime.datetime.utcnow()
         output: dict[str, Any] = await agent_runner.run(
@@ -258,10 +298,108 @@ class FlowExecutor:
         completed_at = datetime.datetime.utcnow()
         elapsed_ms: int = int((completed_at - started_at).total_seconds() * 1000)
 
-        # Persist step output and update shared memory
+        # AFTER gate: pause and give reviewer the actual LLM output
+        gate_aborted = await self._run_after_gate(db, execution_id, step_exec.id, agent, gate, output)
+        if gate_aborted:
+            return
+
+        await self._persist_step_and_advance(
+            db, flow_id, execution_id, execution_id_str,
+            step_exec, agent, agent_id_str, step_number, output, elapsed_ms,
+        )
+
+    async def _run_before_gate(  # noqa: PLR0913
+        self,
+        db: AsyncSession,
+        execution_id: uuid.UUID,
+        step_id: uuid.UUID,
+        agent: Any,
+        gate: str | None,
+    ) -> bool:
+        """Handle BEFORE gate: pause, wait, resume or fail.
+
+        Returns True if execution should be aborted (rejected or error).
+        Returns False if execution should continue.
+        """
+        if gate != GateType.BEFORE.value:
+            return False
+
+        review = await HITLManager.create_review(
+            db=db,
+            execution_id=execution_id,
+            step_id=step_id,
+            agent_id=agent.id,
+            gate_type=GateType.BEFORE.value,
+            output_to_review={"note": "pre-execution gate"},
+            ws_manager=ws_manager,
+        )
+        await _set_paused(db, execution_id)
+        decision = await HITLManager.wait_for_decision(
+            review_id=review.id,
+            timeout_seconds=settings.hitl_timeout_seconds,
+        )
+        if decision == ReviewStatus.REJECTED.value:
+            await self._fail_execution(db, execution_id, "HITL gate rejected before step")
+            return True
+
+        await _set_running(db, execution_id)
+        return False
+
+    async def _run_after_gate(  # noqa: PLR0913
+        self,
+        db: AsyncSession,
+        execution_id: uuid.UUID,
+        step_id: uuid.UUID,
+        agent: Any,
+        gate: str | None,
+        agent_output: dict[str, Any],
+    ) -> bool:
+        """Handle AFTER gate: pause with LLM output, wait, resume or fail.
+
+        Returns True if execution should be aborted (rejected or error).
+        Returns False if execution should continue.
+        """
+        if gate != GateType.AFTER.value:
+            return False
+
+        review = await HITLManager.create_review(
+            db=db,
+            execution_id=execution_id,
+            step_id=step_id,
+            agent_id=agent.id,
+            gate_type=GateType.AFTER.value,
+            output_to_review=agent_output,
+            ws_manager=ws_manager,
+        )
+        await _set_paused(db, execution_id)
+        decision = await HITLManager.wait_for_decision(
+            review_id=review.id,
+            timeout_seconds=settings.hitl_timeout_seconds,
+        )
+        if decision == ReviewStatus.REJECTED.value:
+            await self._fail_execution(db, execution_id, "HITL gate rejected after step")
+            return True
+
+        await _set_running(db, execution_id)
+        return False
+
+    async def _persist_step_and_advance(  # noqa: PLR0913
+        self,
+        db: AsyncSession,
+        flow_id: uuid.UUID,
+        execution_id: uuid.UUID,
+        execution_id_str: str,
+        step_exec: StepExecution,
+        agent: Any,
+        agent_id_str: str,
+        step_number: int,
+        output: dict[str, Any],
+        elapsed_ms: int,
+    ) -> None:
+        """Persist step output, update shared memory, advance completion counter."""
         step_exec.status = "completed"
         step_exec.output_data = {"output": output.get("output", "")}
-        step_exec.completed_at = completed_at
+        step_exec.completed_at = datetime.datetime.utcnow()
         step_exec.execution_time_ms = elapsed_ms
         await db.commit()
 

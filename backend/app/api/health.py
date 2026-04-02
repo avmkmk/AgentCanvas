@@ -6,7 +6,6 @@ Checks both PostgreSQL and Redis connectivity.
 Coding Standard 5: every check result is explicit — no silent failures.
 Coding Standard 2: Redis client always closed via async context manager.
 """
-from __future__ import annotations
 
 import logging
 import time
