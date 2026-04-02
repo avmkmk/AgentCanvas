@@ -9,7 +9,7 @@ Security:
 - Input validation delegated to FlowCreate / FlowUpdate schemas
 - No LLM calls in this router — rate limiting not required here
 """
-from __future__ import annotations
+
 
 import uuid
 from math import ceil
@@ -115,6 +115,7 @@ async def update_flow(
 @router.delete(
     "/{flow_id}",
     status_code=status.HTTP_204_NO_CONTENT,
+    response_model=None,
     summary="Delete a flow",
 )
 async def delete_flow(

@@ -7,20 +7,24 @@ Coding Standard 5: errors from llm_service propagate to the caller
 Coding Standard 9: sanitize_prompt is applied to all user-contributed
 content (system_prompt, shared_memory JSON) before the LLM call.
 """
+
 from __future__ import annotations
 
 import json
 import logging
 from typing import Any
 
+from app.core.config import settings
 from app.models.agent import Agent
 from app.services.llm_service import llm_service
 from app.utils.prompt_sanitizer import sanitize_prompt
 
 _log = logging.getLogger(__name__)
 
-# Default model used when agent.model_name is empty / not set
-_DEFAULT_MODEL = "claude-haiku-4-5-20251001"
+# Default model used when agent.model_name is empty / not set.
+# Reads from settings so it can be changed via LLM_MODEL env var without
+# touching code (Coding Standard 10: no hardcoded configuration values).
+_DEFAULT_MODEL: str = settings.llm_model
 
 
 class AgentRunner:

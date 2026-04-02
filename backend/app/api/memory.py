@@ -8,7 +8,6 @@ Security:
 - verify_api_key on every route (SECURITY.md)
 - Input validated by FlowMemoryUpdateRequest schema
 """
-from __future__ import annotations
 
 import uuid
 

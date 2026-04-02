@@ -7,7 +7,6 @@ get_db: yields an async SQLAlchemy session with automatic cleanup.
 Coding Standard 9: all input validated at the API boundary.
 Coding Standard 2: sessions are always closed via try/finally.
 """
-from __future__ import annotations
 
 import hmac
 from typing import AsyncGenerator

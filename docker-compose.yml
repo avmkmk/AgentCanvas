@@ -33,12 +33,21 @@ services:
 
   frontend:
     build:
-      context: ./frontend
-      dockerfile: Dockerfile
+      # Build context is the project root — package.json, src/, index.html,
+      # vite.config.ts all live here (not in ./frontend/).
+      # .dockerignore at root excludes backend/, docs/, etc. to keep the
+      # build context small.
+      context: .
+      dockerfile: frontend/Dockerfile
     ports:
       - "3000:3000"
     volumes:
-      - ./frontend/src:/app/src
+      # Mount root ./src for Vite hot-reload inside the container
+      - ./src:/app/src
+      # Mount .env.local so Vite's dev server reads VITE_API_KEY at startup.
+      # Vite reads .env files from the project root; process-env injection alone
+      # is not sufficient for the Vite dev server.
+      - ./.env.local:/app/.env.local:ro
     command: npm run dev -- --host 0.0.0.0
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000"]

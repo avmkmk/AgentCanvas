@@ -12,7 +12,9 @@ asyncpg==0.29.0
 alembic==1.13.1
 
 # Database — MongoDB async
+# pymongo pinned to 4.6.x — motor 3.4.0 is incompatible with pymongo>=4.7
 motor==3.4.0
+pymongo==4.6.3
 
 # Cache / pub-sub
 redis==5.0.4
@@ -22,8 +24,8 @@ pydantic==2.7.1
 pydantic-settings==2.2.1
 python-dotenv==1.0.1
 
-# LLM client
-anthropic==0.25.1
+# LLM client — Azure OpenAI-compatible (used for EPAM AI Dial proxy)
+openai==1.30.1
 
 # Rate limiting (applied to LLM-calling endpoints — Coding Standard 9)
 slowapi==0.1.9
