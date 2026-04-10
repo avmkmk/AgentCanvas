@@ -8,7 +8,6 @@
 import axios, { AxiosError, AxiosInstance, AxiosResponse } from "axios";
 import type {
   Agent,
-  AgentAnalytics,
   AgentCreateRequest,
   AgentUpdateRequest,
   ExecutionStartRequest,
@@ -20,6 +19,7 @@ import type {
   HITLReview,
   PaginatedResponse,
 } from "../types/index";
+import type { AgentAnalyticsListResponse, AgentAnalyticsSummary } from "../types/analytics";
 
 // API key is injected at build time via Vite env vars (VITE_ prefix required).
 // SECURITY NOTE (M1 known limitation): VITE_ vars are embedded in the browser
@@ -172,9 +172,14 @@ export async function submitReviewDecision(
 
 // ─── Analytics endpoints ──────────────────────────────────────────────────────
 
+export async function listAgentAnalytics(): Promise<AgentAnalyticsListResponse> {
+  const res = await http.get<AgentAnalyticsListResponse>("/analytics/agents");
+  return res.data;
+}
+
 export async function getAgentAnalytics(
   agentId: string
-): Promise<AgentAnalytics> {
-  const res = await http.get<AgentAnalytics>(`/analytics/agents/${agentId}`);
+): Promise<AgentAnalyticsSummary> {
+  const res = await http.get<AgentAnalyticsSummary>(`/analytics/agents/${agentId}`);
   return res.data;
 }
