@@ -18,7 +18,11 @@ from app.schemas.execution import (
     StepExecutionResponse,
 )
 from app.schemas.hitl import HITLDecisionRequest, HITLReviewResponse
-from app.schemas.analytics import AgentAnalyticsResponse
+from app.schemas.analytics import (
+    AgentAnalyticsListResponse,
+    AgentAnalyticsResponse,
+    AgentAnalyticsSummary,
+)
 from app.schemas.memory import FlowMemoryResponse, FlowMemoryUpdateRequest
 
 __all__ = [
@@ -34,6 +38,8 @@ __all__ = [
     "HITLDecisionRequest",
     "HITLReviewResponse",
     "AgentAnalyticsResponse",
+    "AgentAnalyticsSummary",
+    "AgentAnalyticsListResponse",
     "FlowMemoryResponse",
     "FlowMemoryUpdateRequest",
 ]
