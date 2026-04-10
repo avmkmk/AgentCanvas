@@ -26,6 +26,7 @@ from app.api.agents import router as agents_router
 from app.api.executions import router as executions_router
 from app.api.flows import router as flows_router
 from app.api.health import router as health_router
+from app.api.analytics import router as analytics_router
 from app.api.hitl import router as hitl_router
 from app.api.memory import router as memory_router
 from app.api.models import router as models_router
@@ -91,6 +92,9 @@ def create_app() -> FastAPI:
 
     # HITL review endpoints — BA-07 / BA-08
     app.include_router(hitl_router, prefix="/api/v1")
+
+    # Analytics endpoints — BA-11 / BC-11
+    app.include_router(analytics_router, prefix="/api/v1/analytics")
 
     # LLM model discovery — returns available models from the Dial proxy
     # No auth required — frontend uses this to populate the model picker
