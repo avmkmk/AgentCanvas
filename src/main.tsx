@@ -4,23 +4,18 @@
  * React 18 createRoot API.
  * StrictMode is enabled to surface potential issues during development.
  * Coding Standard 2: no resource leaks — React handles root cleanup.
+ * AuthProvider wraps the app to enforce Keycloak PKCE login before rendering.
  */
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App.tsx";
+import { AuthProvider } from "./auth/AuthProvider.tsx";
 import "./index.css";
-import App from "./App";
 
-const rootElement = document.getElementById("root");
-
-// Guard: root element must exist — fail loudly at startup if HTML is misconfigured
-if (rootElement === null) {
-  throw new Error(
-    "Root element #root not found in index.html. Cannot mount React app."
-  );
-}
-
-createRoot(rootElement).render(
-  <StrictMode>
-    <App />
-  </StrictMode>
+ReactDOM.createRoot(document.getElementById("root")!).render(
+  <React.StrictMode>
+    <AuthProvider>
+      <App />
+    </AuthProvider>
+  </React.StrictMode>,
 );
