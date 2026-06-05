@@ -14,6 +14,7 @@ import CanvasPage from "./pages/CanvasPage";
 import FlowLibraryPage from "./pages/FlowLibraryPage";
 import HITLQueuePage from "./pages/HITLQueuePage";
 import { useHITLStore } from "./store/hitlStore";
+import { keycloak } from "./auth/AuthProvider";
 
 function App(): JSX.Element {
   const pendingReviews = useHITLStore((s) => s.pendingReviews);
@@ -75,6 +76,20 @@ function App(): JSX.Element {
               </strong>{" "}
               pending
             </span>
+            <button
+              onClick={() => keycloak.logout({ redirectUri: window.location.origin + '/' })}
+              style={{
+                background: 'none',
+                border: '1px solid #555',
+                color: '#a0aec0',
+                padding: '2px 10px',
+                borderRadius: 4,
+                cursor: 'pointer',
+                fontSize: '0.8rem',
+              }}
+            >
+              Logout ({(keycloak.tokenParsed as Record<string, string> | undefined)?.['preferred_username'] ?? 'user'})
+            </button>
           </nav>
         </header>
 

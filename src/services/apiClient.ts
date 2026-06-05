@@ -2,10 +2,11 @@
  * Axios API client for AgentCanvas backend.
  *
  * Coding Standard 8: wrap third-party clients in service classes.
- * All requests include the X-API-Key header from the environment.
+ * All requests include a Bearer token from Keycloak.
  * Responses are validated: only 2xx are resolved; errors always include detail.
  */
 import axios, { AxiosError, AxiosInstance, AxiosResponse } from "axios";
+import keycloak from '../auth/keycloak';
 import type {
   Agent,
   AgentCreateRequest,
@@ -21,13 +22,6 @@ import type {
 } from "../types/index";
 import type { AgentAnalyticsListResponse, AgentAnalyticsSummary } from "../types/analytics";
 
-// API key is injected at build time via Vite env vars (VITE_ prefix required).
-// SECURITY NOTE (M1 known limitation): VITE_ vars are embedded in the browser
-// bundle. This is acceptable for localhost development only. Before any
-// non-localhost deployment, replace with a backend-for-frontend (BFF) proxy
-// that holds the secret server-side, or implement short-lived token auth.
-// Tracked in GitHub issue #29 (S-04 — token auth).
-const API_KEY = import.meta.env.VITE_API_KEY as string;
 const BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "/api/v1";
 
 function buildClient(): AxiosInstance {
@@ -36,9 +30,16 @@ function buildClient(): AxiosInstance {
     timeout: 30_000, // 30 s — Coding Standard 8: always set timeouts
     headers: {
       "Content-Type": "application/json",
-      // API key auth — matches backend verify_api_key dependency
-      "X-API-Key": API_KEY,
     },
+  });
+
+  // Request interceptor: attach Keycloak Bearer token to every request
+  client.interceptors.request.use((config) => {
+    const token = keycloak.token;
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
+    return config;
   });
 
   // Response interceptor: normalize all errors to { detail: string }

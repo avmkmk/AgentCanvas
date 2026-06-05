@@ -20,13 +20,18 @@ export default defineConfig({
     host: "0.0.0.0",
     port: 3000,
     // Proxy API requests to backend — avoids CORS in development
+    // Analytics service on :8001 must be listed before the generic /api entry
     proxy: {
+      "/api/v1/analytics": {
+        target: "http://localhost:8001",
+        changeOrigin: true,
+      },
       "/api": {
-        target: "http://backend:8080",
+        target: "http://localhost:8000",
         changeOrigin: true,
       },
       "/ws": {
-        target: "ws://backend:8080",
+        target: "ws://localhost:8000",
         ws: true,
       },
     },

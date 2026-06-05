@@ -201,21 +201,23 @@ export function HITLReviewModal(props: HITLReviewModalProps): JSX.Element | null
 
   if (!isOpen || review === null) return null;
 
+  // Capture in non-nullable local so TypeScript narrows correctly inside closures
+  const activeReview = review;
   const commentEmpty = comment.trim() === "";
 
   async function handleApproveClick(): Promise<void> {
     if (commentEmpty) { setShowCommentError(true); return; }
     setShowCommentError(false);
-    await onApprove(review.id, comment);
+    await onApprove(activeReview.id, comment);
   }
 
   async function handleRejectClick(): Promise<void> {
     if (commentEmpty) { setShowCommentError(true); return; }
     setShowCommentError(false);
-    await onReject(review.id, comment);
+    await onReject(activeReview.id, comment);
   }
 
-  async function handleProceedClick(): Promise<void> { await onProceed(review.id); }
+  async function handleProceedClick(): Promise<void> { await onProceed(activeReview.id); }
 
   return (
     <HITLModalShell
